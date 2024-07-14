@@ -26,6 +26,9 @@ body {
     display: block;
   }
   
+  article {
+    min-height: 600px;
+  }
   section {
     opacity: 1;
     transition: opacity 500ms ease-in-out;
