@@ -20,6 +20,7 @@ const video = document.getElementById('webcam');
 const liveView = document.getElementById('liveView');
 const demosSection = document.getElementById('demos');
 const enableWebcamButton = document.getElementById('webcamButton');
+const loadingSection = document.getElementById('loading');
 
 
 // Check if webcam access is supported.
@@ -74,6 +75,7 @@ cocoSsd.load().then(function (loadedModel) {
   model = loadedModel;
   // Show demo section now model is ready to use.
   demosSection.classList.remove('invisible');
+  loadingSection.classList.add('removed');
 });
 
 var children = [];
