@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Jian's Code Camp GitHub </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Jian's Machine Learning Code Camp">
+    <meta name="keywords" content="Machine Learning TensorFlow WebCam Self Driving car">
+    <meta name="author" content="Jian Huang">
+    <!-- Import the webpage's stylesheet -->
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="WebCam.css">
+    <link rel="stylesheet" href="../Content/Site.css">
+</head>
+
+<body>
+    <h1 class="PageTitle">Jian's Code Camp - GitHub</h1>
+    <h4 class="PageHeader">Home | Web Cam ML | Self Driving Car</h4>
+
+    <article>
+        <h2>Multiple Object Detection using Pretrained Model in TensorFlow.js</h2>
+
+        <p><small>Follow the YouTube Google Developer's
+                <a href="https://www.youtube.com/watch?v=TuYbgZ59Kpg&list=PLOU2XLYxmsILr3HQpqjLAUkIPa5EaZiui"
+                    target="_blank">Machine Learning for Web Developer playlist</a>
+            </small>
+        </p>
+        <p>
+            <small>Disclaimer: Privacy, the pretrained model is loaded into your browser from CDN. No data transmitted
+                back to anywhere.
+            </small>
+        </p>
+
+        <p id="loading"><br>Please Wait for the model to load ...
+            <br><img src="../Images/loading.gif" />
+        </p>
+
+        <section id="demos" class="invisible">
+            <p>When ready please click "enable webcam" below and accept the browser prompt to allow access to the webcam
+                <br>(Tip: Please check the top left of your window for the prompt)
+                <br>Sorry, it doesn't work on cell phones
+            </p>
+            <p>Hold some objects up close to your webcam to get a real-time classification! </p>
+
+            <div id="liveView" class="camView">
+                <button id="webcamButton">Enable Webcam</button>
+                <video id="webcam" autoplay muted width="640" height="480"></video>
+            </div>
+        </section>
+    </article>
+    
+    <!-- Import TensorFlow.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js" type="text/javascript"></script>
+    <!-- Load the coco-ssd model to use to recognize things in images -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+
+    <!-- Import the page's JavaScript to do some stuff -->
+    <script src="WebCam.js" defer></script>
+</body>
+
+</html>
