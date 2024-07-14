@@ -1,1 +1,1 @@
-Jian's code camp at Git Hub
+Jian's ML code camp at Git Hub

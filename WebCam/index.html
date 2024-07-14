@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Jian's Code Camp GitHub </title>
+    <title>Jian's ML Code Camp</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Jian's Machine Learning Code Camp">
@@ -15,11 +15,11 @@
 </head>
 
 <body>
-    <h1 class="PageTitle">Jian's Code Camp - GitHub</h1>
-    <h4 class="PageHeader">Home | Web Cam ML | Self Driving Car</h4>
+    <h1 class="PageTitle"><a href="../index.html" target="_self">Jian's ML Code Camp </a></h1>
+    <h4 class="PageHeader"></h4>
 
     <article>
-        <h2>Multiple Object Detection using Pretrained Model in TensorFlow.js</h2>
+        <h2>Multiple Object Detection using Pre Trained Model in TensorFlow.js</h2>
 
         <p><small>Follow the YouTube Google Developer's
                 <a href="https://www.youtube.com/watch?v=TuYbgZ59Kpg&list=PLOU2XLYxmsILr3HQpqjLAUkIPa5EaZiui"
@@ -27,8 +27,9 @@
             </small>
         </p>
         <p>
-            <small>Disclaimer: Privacy, the pretrained model is loaded into your browser from CDN. No data transmitted
-                back to anywhere.
+            <small>Disclaimer about privacy: the pre trained model is loaded into your browser from CDN. No data
+                transmitted
+                back to servers or anywhere.
             </small>
         </p>
 
@@ -39,8 +40,8 @@
         <section id="demos" class="invisible">
             <p>When ready please click "enable webcam" below and accept the browser prompt to allow access to the webcam
                 <br>(Tip: Please check the top left of your window for the prompt)
-                <br>Sorry, it doesn't work on cell phones
             </p>
+            <p><strong> This feature does NOT work on all cell phone cameras</strong></p>
             <p>Hold some objects up close to your webcam to get a real-time classification! </p>
 
             <div id="liveView" class="camView">
@@ -49,7 +50,7 @@
             </div>
         </section>
     </article>
-    
+
     <!-- Import TensorFlow.js library -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js" type="text/javascript"></script>
     <!-- Load the coco-ssd model to use to recognize things in images -->

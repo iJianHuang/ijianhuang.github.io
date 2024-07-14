@@ -8,8 +8,7 @@ body {
 
 
 article {
-    width: 800px;
-    /* min-height: 500px; */
+    width: 800px;    
     margin: auto;
     padding: 16px 16px 16px 16px;
     box-shadow: 0 2px 1px -1px rgba(0, 0, 0, .2), 
@@ -33,6 +32,12 @@ h1, h4 {
     padding-bottom: 25px;
 }
 
+.PageTitle a {
+    background-color:  #673ab7;
+    color: whitesmoke;
+    text-decoration: none;
+}
+
 .PageHeader {
     background-color:  #673ab7;
     color: whitesmoke;
@@ -40,10 +45,19 @@ h1, h4 {
     padding-bottom: 15px;
 }
 
+.PageContent {    
+    min-height: 600px; 
+    margin: 0;
+    float: left;
+    
+}
 
 .example-card {
-    max-width: 400px;
-    min-width: 300px;
-    margin: 15px;
+    max-width: 450px;
+    min-width: 350px;
+    min-height: 200px;
+    margin: 30px;
+    /*display: flex; */
+    float: left;
 }
 
