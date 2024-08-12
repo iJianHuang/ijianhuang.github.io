@@ -47,17 +47,78 @@
             tfvis.render.scatterplot(container, data, opts);
         }
 
-        async function run() {
-            const houseSalesDataset = tf.data.csv("https://ijianhuang.github.io/HouseSales/kc_house_data.csv")
-            const sampleDataset = houseSalesDataset.take(10);
-            const dataArray = await sampleDataset.toArray(); 
-            console.log(dataArray);
+        function normalize(tensor) {
+            const min = tensor.min();
+            const max = tensor.max();
+            const normalizedTensor = tensor.sub(min).div(max.sub(min));
+            return {
+                tensor: normalizedTensor,
+                min,
+                max
+            };
+        }
 
-            const points = houseSalesDataset.map(record => ({
+        function denormalize(tensor, min, max) {
+            const denormalizedTensor = tensor.mul(max.sub(min)).add(min);
+            return denormalizedTensor;
+        }
+
+        async function run() {
+            await tf.ready();
+            
+            // Import from csv
+            const houseSalesDataset = tf.data.csv("https://ijianhuang.github.io/HouseSales/kc_house_data.csv")
+            
+            // Extract x and y from data set to plot
+            const pointsDataset = houseSalesDataset.map(record => ({
                 x: record.sqft_living,
                 y: record.price
             }));
-            plot(await points.toArray(), "Square Feet");
+            const points = await pointsDataset.toArray();
+            if (points.length % 2 !== 0) {
+                points.pop();
+            }
+            tf.util.shuffle(points); // attn: in-place shuffle 
+            plot(points, "Square Feet");
+
+            // features (inputs)
+            const featureValues = await points.map(p => p.x);
+            const featureTensor = tf.tensor2d(featureValues, [featureValues.length, 1]);
+
+            // labels (outputs)
+            const labelValues = await points.map(p => p.y);
+            const labelTensor = tf.tensor2d(labelValues, [labelValues.length, 1]);
+
+            // normalize features and labels
+            const normalizedFeature = normalize(featureTensor);
+            const normalizedLabel = normalize(labelTensor);
+
+            const [trainingFeatureTensor, testingFeatureTensor] = tf.split(normalizedFeature.tensor, 2);
+            const [trainingLabelTensor, testingLabelTensor] = tf.split(normalizedLabel.tensor, 2);
+            
+            trainingFeatureTensor.print();
+            //normalizedFeature.tensor.print();
+            //normalizedLabel.tensor.print();    
+            //denormalize(normalizedFeature.tensor, normalizedFeature.min, normalizedFeature.max).print();
+            //const normalizedFeatureLabelTensor = normalizedFeature.tensor
+            //    .concat(normalizedLabel.tensor, 1);
+            //normalizedFeatureLabelTensor.print();
+            //plot(await normalizedFeatureLabelTensor.array(), "Square Feet Normalized");
+            //await normalizedFeatureLabelTensor.array().then(array => console.log(array));
+            //const normalizedPoints = await normalizedFeatureLabelTensor
+            //.array();//.then(array => array.map(i => [i[0] * 2, i[1] * 3 ]) );
+            //;
+            //console.log(normalizedPoints);
+            //plot(normalizedPoints, "Square Feet Normalized");
+            
+            /*.map(record => ({
+                x: record[0],
+                y: record[1]
+            }));
+            plot(normalizedPoints, "Square Feet Normalized");
+            */
+            // a.array().then(array => {console.log(array[0][1]); let newArr = array.map(i => [i[0] * 2, i[1] * 3 ]); console.log(newArr); });
+            //return normalizedPoints;
         }
 
         run();
