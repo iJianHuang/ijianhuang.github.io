@@ -8,42 +8,148 @@
     <meta name="description" content="Jian's Machine Learning Code Camp">
     <meta name="keywords" content="Machine Learning TensorFlow House Price">
     <meta name="author" content="Jian Huang">
-    <!-- Import the webpage's stylesheet -->
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="../Content/Site.css">
+    <!-- Import the webpage's stylesheet -->    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 </head>
+<body> 
+    <!--   Header   -->
+    <div class="section no-pad-bot" id="index-banner">
+        <div class="container">
+            <h1 class="header center blue-text"><a href="../index.html" target="_self">Jian's ML Code Camp </a></h1>
+            <h2 class="header center">House Price Prediction</h2>
 
-<body>
-    <h1 class="PageTitle"><a href="../index.html" target="_self">Jian's ML Code Camp </a></h1>
-    <h4 class="PageHeader"></h4>
+            <h5 class="header center blue-text small">Linear regression with TensorFlow.js</h5>
+            <div class="row center">
+                <h6 class="header col s12 light">Train a model to predict house price from living space.</h6>
+            </div>
+        </div>
+    </div>
 
-    <article>
-        <h2>House Price Prediction</h2>
+    <!--   Misc buttons   -->
+    <div class="section no-pad-bot light-blue lighten-4">
+        <div class="container">
+            <div class="row center">
+                <button id="toggle-button" class="waves-effect waves-light light-blue btn-small"
+                    onclick="toggleVisor()">Toggle Visor</button>
+                <br /><br />
+            </div>
+        </div>
+    </div>
 
-        <p><small>
-            </small>
-        </p>
-        <p>
-            <small>
-            </small>
-        </p>
+    <!--   Main functionality   -->
+    <div class="container">
+        <div class="section">
 
-       
+            <div class="row">
+                <!--   Training   -->
+                <div class="col s12 m6">
+                    <div class="icon-block">
+                        <h3 class="center light-blue-text"><i class="material-icons" style="font-size: 2em">build</i>
+                        </h3>
+                        <h5 class="center">Train & Test</h5>
 
-        
-    </article>
+                        <p class="light"></p>
+
+                        <div>
+                            <p><label>Training status:</label></p>
+                            <pre class="grey lighten-4"
+                                style="overflow-x: auto"><em id="model-status">Loading data...</em></pre>
+
+                            <p><label>Testing status:</label></p>
+                            <pre class="grey lighten-4"
+                                style="overflow-x: auto"><em id="testing-status">Not yet tested</em></pre>
+
+                            <button autocomplete="off" id="train-button" class="waves-effect light-blue waves-light btn"
+                                disabled onclick="train()">Train New Model</button>
+                            <button autocomplete="off" id="test-button" class="waves-effect light-blue waves-light btn"
+                                disabled onclick="test()">Test Model</button>
+                        </div>
+                        <br />
+
+                        <div>
+                            <button autocomplete="off" id="load-button"
+                                class="waves-effect light-blue waves-light btn-small" disabled onclick="load()">Load
+                                Model</button>
+                            <button autocomplete="off" id="save-button"
+                                class="waves-effect light-blue waves-light btn-small" disabled onclick="save()">Save
+                                Model</button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!--   Prediction   -->
+                <div class="col s12 m6">
+                    <div class="icon-block">
+                        <h3 class="center light-blue-text"><i class="material-icons" style="font-size: 2em">timeline</i>
+                        </h3>
+                        <h5 class="center">Predict</h5>
+
+                        <label>Square feet of living space: <input type="number" id="prediction-input"
+                                placeholder="2000" /></label>
+                        <button autocomplete="off" id="predict-button" class="waves-effect light-blue waves-light btn"
+                            disabled onclick="predict()">Predict house price</button>
+                        <p><strong id="prediction-output"></strong></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
     <!-- Import TensorFlow.js library -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
-    
+
 
     <!-- Import the page's JavaScript to do some stuff -->
     <script type="text/javascript">
-        async function plot (pointsArray, featureName) {
-            const container = { name: `${featureName} vs House Price`, tab: 'Chart 1' };
-            const data = { values: [pointsArray], series: ["original"]  };
-            const opts =   { xLabel: featureName, yLabel: "Price" };   
+        async function predict () {
+            alert("Not yet implemented");
+        }
+
+        async function load () {
+            alert("Not yet implemented");
+        }
+
+        async function save () {
+            alert("Not yet implemented");
+        }
+
+        async function test () {
+            alert("Not yet implemented");
+        }
+
+        async function train() {
+            const model = createModel();
+            //model.summary(); // console log
+            tfvis.show.modelSummary({ name: "Model Summary", tab: "Model" }, model);
+            const layer = model.getLayer(undefined, 0);
+            tfvis.show.layer({ name: "Layer 1", tab: "Model Inspection" }, layer);
+
+            const result = await trainModel(model, trainingFeatureTensor, trainingLabelTensor);
+            console.log(result);
+            const trainingLoss = result.history.loss.pop();
+            console.log(`Training set loss: ${trainingLoss}`);
+            const validationLoss = result.history.val_loss.pop();
+            console.log(`Validation set loss: ${validationLoss}`);
+
+            const lossTensor = model.evaluate(testingFeatureTensor, testingLabelTensor);
+            const loss = await lossTensor.dataSync();
+            console.log(`Testing set loss: ${loss}`);
+        }
+        
+        async function toggleVisor () {
+            tfvis.visor().toggle();
+        }
+
+
+        async function plot(pointsArray, featureName) {
+            const container = { name: `${featureName} vs House Price`, tab: 'Visor' };
+            const data = { values: [pointsArray], series: ["original"] };
+            const opts = { xLabel: featureName, yLabel: "Price" };
             tfvis.render.scatterplot(container, data, opts);
         }
 
@@ -63,12 +169,47 @@
             return denormalizedTensor;
         }
 
+        function createModel() {
+            const model = tf.sequential();
+            model.add(tf.layers.dense({
+                units: 1,
+                useBias: true,
+                activation: 'linear',
+                inputDim: 1
+            }));
+
+            const optimizer = tf.train.sgd(0.1);
+            model.compile({
+                loss: 'meanSquaredError',
+                optimizer
+            });
+
+            return model;
+        }
+
+        async function trainModel(model, trainingFeatureTensor, trainingLabelTensor) {
+            const { onBatchEnd, onEpochEnd } = tfvis.show.fitCallbacks(
+                { name: "Training Performance", tab: "Loss" },
+                ['loss']
+            )
+            return model.fit(trainingFeatureTensor, trainingLabelTensor, {
+                batchSize: 32, // 512,
+                epochs: 20,
+                validationSplit: 0.2,
+                shuffle: true,
+                callbacks: {
+                    //onEpochEnd: (epoch, log) => console.log(`Epoch ${epoch}: loss = ${log.loss}`)
+                    onEpochEnd //, onBatchEnd
+                }
+            });
+        }
+
         async function run() {
             await tf.ready();
-            
+
             // Import from csv
             const houseSalesDataset = tf.data.csv("https://ijianhuang.github.io/HouseSales/kc_house_data.csv")
-            
+
             // Extract x and y from data set to plot
             const pointsDataset = houseSalesDataset.map(record => ({
                 x: record.sqft_living,
@@ -95,35 +236,13 @@
 
             const [trainingFeatureTensor, testingFeatureTensor] = tf.split(normalizedFeature.tensor, 2);
             const [trainingLabelTensor, testingLabelTensor] = tf.split(normalizedLabel.tensor, 2);
+
             
-            trainingFeatureTensor.print();
-            //normalizedFeature.tensor.print();
-            //normalizedLabel.tensor.print();    
-            //denormalize(normalizedFeature.tensor, normalizedFeature.min, normalizedFeature.max).print();
-            //const normalizedFeatureLabelTensor = normalizedFeature.tensor
-            //    .concat(normalizedLabel.tensor, 1);
-            //normalizedFeatureLabelTensor.print();
-            //plot(await normalizedFeatureLabelTensor.array(), "Square Feet Normalized");
-            //await normalizedFeatureLabelTensor.array().then(array => console.log(array));
-            //const normalizedPoints = await normalizedFeatureLabelTensor
-            //.array();//.then(array => array.map(i => [i[0] * 2, i[1] * 3 ]) );
-            //;
-            //console.log(normalizedPoints);
-            //plot(normalizedPoints, "Square Feet Normalized");
-            
-            /*.map(record => ({
-                x: record[0],
-                y: record[1]
-            }));
-            plot(normalizedPoints, "Square Feet Normalized");
-            */
-            // a.array().then(array => {console.log(array[0][1]); let newArr = array.map(i => [i[0] * 2, i[1] * 3 ]); console.log(newArr); });
-            //return normalizedPoints;
         }
 
         run();
     </script>
-    
+
 </body>
 
 </html>
