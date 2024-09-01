@@ -1,5 +1,19 @@
 async function predict () {
-    alert("Not yet implemented");
+    const predictionInput = parseInt(document.getElementById("prediction-input").value);
+    if (isNaN(predictionInput) || predictionInput < 200 ) {
+        alert("Please enter a valid and reasonable house square feet");
+    } else {
+        tf.tidy(() => {
+            const inputTensor = tf.tensor1d([predictionInput]);
+            const normalizedInput = normalize(inputTensor, normalizedFeature.min, normalizedFeature.max);
+            const normalizedOutputTensor = model.predict(normalizedInput.tensor);
+            const outputTensor = denormalize(normalizedOutputTensor, normalizedLabel.min, normalizedLabel.max);
+            const outputValue = outputTensor.dataSync()[0];
+            const outputValueRounded = (outputValue/1000).toFixed(0)*1000;
+            document.getElementById("prediction-output").innerHTML = `The predicted house price is <br>`
+                + `<span style="font-size:2em;">\$${outputValueRounded} </span> `;
+        });
+    }
 }
 
 async function load () {
@@ -8,6 +22,8 @@ async function load () {
         const modelInfo = models[storageKey];
         model = await tf.loadLayersModel(storageKey);
         showModelSummary(model);
+
+        await plotPredictionLine();
         document.getElementById("model-status").innerHTML = `Trained (load model from saved ${modelInfo.dateSaved})`;
         document.getElementById("test-button").removeAttribute("disabled");
         document.getElementById("predict-button").removeAttribute("disabled");
@@ -49,6 +65,7 @@ async function train() {
     const model = createModel();
     //model.summary(); // console log
     showModelSummary(model);
+    await plotPredictionLine();
 
     const result = await trainModel(model, trainingFeatureTensor, trainingLabelTensor);
     console.log(result);
@@ -62,15 +79,16 @@ async function train() {
         + `Validation loss: ${validationLoss.toPrecision(5)}`;
     document.getElementById("test-button").removeAttribute("disabled");
     document.getElementById("save-button").removeAttribute("disabled");
+    document.getElementById("predict-button").removeAttribute("disabled");
     if (doesModelExist()) {
         document.getElementById("load-button").removeAttribute("disabled");    
     }
 }
 
 function showModelSummary(model) {
-    tfvis.show.modelSummary({ name: "Model Summary", tab: "Model" }, model);
+    tfvis.show.modelSummary({ name: "Model Summary", tab: "Visor" }, model);
     const layer = model.getLayer(undefined, 0);
-    tfvis.show.layer({ name: "Layer 1", tab: "Model Inspection" }, layer);
+    tfvis.show.layer({ name: "Layer 1", tab: "Visor" }, layer);
 }
 
 async function toggleVisor () {
@@ -78,16 +96,40 @@ async function toggleVisor () {
 }
 
 
-async function plot(pointsArray, featureName) {
-    const container = { name: `${featureName} vs House Price`, tab: 'Visor' };
-    const data = { values: [pointsArray], series: ["original"] };
+async function plot(pointsArray, featureName, predictedPointsArray = null, tab = "Visor") {
+    const values = [pointsArray.slice(0, 1000)];
+    const series = ["original"];
+    if (Array.isArray(predictedPointsArray)) {
+        values.push(predictedPointsArray);
+        series.push("predicted");
+    }
+    const container = { name: `${featureName} vs House Price`, tab: tab };
+    const data = { values, series };
     const opts = { xLabel: featureName, yLabel: "Price" };
     tfvis.render.scatterplot(container, data, opts);
 }
 
-function normalize(tensor) {
-    const min = tensor.min();
-    const max = tensor.max();
+async function plotPredictionLine() {
+    const [xs, ys] = tf.tidy(() => {
+        const normalizedXs = tf.linspace(0, 1, 100);
+        const normalizedYs = model.predict(normalizedXs.reshape([100, 1]));
+
+        const xs = denormalize(normalizedXs, normalizedFeature.min, normalizedFeature.max);
+        const ys = denormalize(normalizedYs, normalizedLabel.min, normalizedLabel.max);
+
+        return [xs.dataSync(), ys.dataSync()];
+    });
+
+    const predictedPoints = Array.from(xs).map((val, index) => {
+        return { x: val, y: ys[index]};
+    });
+
+    await plot(points, "Square feet", predictedPoints, "Training");
+}
+
+function normalize(tensor, previousMin = null, previousMax = null) {
+    const min = previousMin || tensor.min();
+    const max = previousMax || tensor.max();
     const normalizedTensor = tensor.sub(min).div(max.sub(min));
     return {
         tensor: normalizedTensor,
@@ -136,11 +178,17 @@ async function trainModel(model, trainingFeatureTensor, trainingLabelTensor) {
         shuffle: true,
         callbacks: {
             //onEpochEnd: (epoch, log) => console.log(`Epoch ${epoch}: loss = ${log.loss}`)
-            onEpochEnd //, onBatchEnd
+            onEpochEnd, //, onBatchEnd
+            onEpochBegin: async function() {                
+                const layer = model.getLayer(undefined, 0);
+                tfvis.show.layer({ name: "Layer 1", tab: "Visor" }, layer);
+                await plotPredictionLine();
+            }
         }
     });
 }
 
+let points;
 let normalizedFeature, normalizedLabel;
 let trainingFeatureTensor, testingFeatureTensor, trainingLabelTensor, testingLabelTensor;
 async function run() {
@@ -154,7 +202,7 @@ async function run() {
         x: record.sqft_living,
         y: record.price
     }));
-    const points = await pointsDataset.toArray();
+    points = await pointsDataset.toArray();
     if (points.length % 2 !== 0) {
         points.pop();
     }
