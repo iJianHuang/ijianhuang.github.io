@@ -91,6 +91,16 @@ function showModelSummary(model) {
     tfvis.show.layer({ name: "Layer 1", tab: "Visor" }, layer);
 }
 
+async function plotParams(weight, bias) {
+    model.getLayer(null, 0).setWeights([
+        tf.tensor2d([[weight]]),
+        tf.tensor1d([bias])
+    ]);
+    const layer = model.getLayer(undefined, 0);
+    tfvis.show.layer({ name: "Layer 1", tab: "Visor" }, layer);
+    await plotPredictionLine();
+}
+
 async function toggleVisor () {
     tfvis.visor().toggle();
 }
@@ -149,17 +159,16 @@ function createModel() {
     model.add(tf.layers.dense({
         units: 1,
         useBias: true,
-        activation: 'linear',
+        activation: 'linear', // 'sigmoid', //
         inputDim: 1
-    }));
-
+    }));   
     compileModel(model);
 
     return model;
 }
 
 function compileModel(model) {
-    const optimizer = tf.train.sgd(0.1);
+    const optimizer = tf.train.sgd(0.1); // .1
     model.compile({
         loss: 'meanSquaredError',
         optimizer
