@@ -17,10 +17,10 @@
     <!--   Header   -->
     <div class="section no-pad-bot" id="index-banner">
         <div class="container">
-            <h1 class="header center green-text"><a href="../../index.html" target="_self">Jian's ML Code Camp </a></h1>
+            <h1 class="header center red-text"><a href="../../index.html" target="_self">Jian's ML Code Camp </a></h1>
             <h2 class="header center">House Price Prediction</h2>
 
-            <h5 class="header center green-text small">Binary Classification with TensorFlow.js</h5>
+            <h5 class="header center red-text small">Multi-Class Classification with TensorFlow.js</h5>
             <div class="row center">
                 <h6 class="header col s12 light">Train a model to predict a class</h6>
             </div>
@@ -28,10 +28,10 @@
     </div>
 
     <!--   Misc buttons   -->
-    <div class="section no-pad-bot light-green lighten-4">
+    <div class="section no-pad-bot red lighten-4">
         <div class="container">
             <div class="row center">
-                <button id="toggle-button" class="waves-effect waves-light light-green btn-small"
+                <button id="toggle-button" class="waves-effect waves-light red btn-small"
                     onclick="toggleVisor()">Toggle Visor</button>
                 <br /><br />
             </div>
@@ -46,7 +46,7 @@
                 <!--   Training   -->
                 <div class="col s12 m6">
                     <div class="icon-block">
-                        <h3 class="center light-green-text"><i class="material-icons" style="font-size: 2em">build</i>
+                        <h3 class="center red-text"><i class="material-icons" style="font-size: 2em">build</i>
                         </h3>
                         <h5 class="center">Train & Test</h5>
 
@@ -61,19 +61,19 @@
                             <pre class="grey lighten-4"
                                 style="overflow-x: auto"><em id="testing-status">Not yet tested</em></pre>
 
-                            <button autocomplete="off" id="train-button" class="waves-effect light-green waves-light btn"
+                            <button autocomplete="off" id="train-button" class="waves-effect red waves-light btn"
                                 disabled onclick="train()">Train New Model</button>
-                            <button autocomplete="off" id="test-button" class="waves-effect light-green waves-light btn"
+                            <button autocomplete="off" id="test-button" class="waves-effect red waves-light btn"
                                 disabled onclick="test()">Test Model</button>
                         </div>
                         <br />
 
                         <div>
                             <button autocomplete="off" id="load-button"
-                                class="waves-effect light-green waves-light btn-small" disabled onclick="load()">Load
+                                class="waves-effect red waves-light btn-small" disabled onclick="load()">Load
                                 Model</button>
                             <button autocomplete="off" id="save-button"
-                                class="waves-effect light-green waves-light btn-small" disabled onclick="save()">Save
+                                class="waves-effect red waves-light btn-small" disabled onclick="save()">Save
                                 Model</button>
                         </div>
 
@@ -83,7 +83,7 @@
                 <!--   Prediction   -->
                 <div class="col s12 m6">
                     <div class="icon-block">
-                        <h3 class="center light-green-text"><i class="material-icons" style="font-size: 2em">timeline</i>
+                        <h3 class="center red-text"><i class="material-icons" style="font-size: 2em">timeline</i>
                         </h3>
                         <h5 class="center">Predict</h5>
 
@@ -91,7 +91,7 @@
                                 placeholder="2000" /></label>
                         <label>House price ($): <input type="number" id="prediction-input-2"
                                 placeholder="1000000" /></label>
-                        <button autocomplete="off" id="predict-button" class="waves-effect light-green waves-light btn"
+                        <button autocomplete="off" id="predict-button" class="waves-effect red waves-light btn"
                             disabled onclick="predict()">Predict Class</button>
                         <p><strong id="prediction-output"></strong></p>
                     </div>

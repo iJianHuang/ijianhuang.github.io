@@ -14,10 +14,12 @@ async function predict () {
             const normalizedInput = normalize(inputTensor, normalizedFeature.min, normalizedFeature.max);
             const normalizedOutputTensor = model.predict(normalizedInput.tensor);
             const outputTensor = denormalize(normalizedOutputTensor, normalizedLabel.min, normalizedLabel.max);
-            const outputValue = outputTensor.dataSync()[0];
-            const outputValueRounded = (outputValue*100).toFixed(1);
-            document.getElementById("prediction-output").innerHTML = `The likelihood of being waterfront property is <br>`
-                + `<span style="font-size:2em;">\$${outputValueRounded}%</span> `;
+            const outputs = outputTensor.dataSync();
+            let outputString = "";
+            for (let i = 0; i < 3; i++) {
+                outputString += `Likelihood of having ${getClassName(i)} bedrooms is: ${(outputs[i]*100).toFixed(1)}%<br> `
+            }
+            document.getElementById("prediction-output").innerHTML = outputString;
         });
     }
 }
@@ -45,7 +47,7 @@ async function doesModelExist () {
     return modelInfo? true : false;    
 }
 
-const storageID = "kc-house-price-binary";
+const storageID = "kc-house-price-multi";
 const storageKey = `localstorage://${storageID}`;
 async function save () {
     const saveResults = await model.save(`localstorage://${storageID}`);
@@ -221,30 +223,35 @@ async function plotPredictionHeadmap(name = "Predicted Class", size = 400) {
     const yTicks = await yTicksPromise;
     const xTickLabels = xTicks.map(v => (v/1000).toFixed(1) + "k sqft");
     const yTickLabels = yTicks.map(v => "$" + (v/1000).toFixed(0) + "k");
-    const data = {
-        values,
-        xTickLabels,
-        yTickLabels
-    };
-    
 
-    tfvis.render.heatmap({
-            name: `${name} local`,
-            tab: "Predictions"
-        },
-        data, {
-            height: size
-        }
-    );
-    tfvis.render.heatmap({
-            name: `${name} (full domain)`,
-            tab: "Predictions"
-        },
-        data, {
-            height: size,
-            domain: [0, 1]
-        }
-    );
+    tf.unstack(values, 2).forEach((values, i) => {
+        const data = {
+            values,
+            xTickLabels,
+            yTickLabels
+        };
+        
+    
+        tfvis.render.heatmap({
+                name: `Bedrooms: ${getClassName(i)} local`,
+                tab: "Predictions"
+            },
+            data, {
+                height: size
+            }
+        );
+        tfvis.render.heatmap({
+                name: `Bedrooms: ${getClassName(i)} (full domain)`,
+                tab: "Predictions"
+            },
+            data, {
+                height: size,
+                domain: [0, 1]
+            }
+        );
+    });
+
+    
 }
 
 function normalize(tensor, previousMin = null, previousMax = null) {
@@ -267,7 +274,6 @@ function normalize(tensor, previousMin = null, previousMax = null) {
     } else {
         const min = previousMin || tensor.min();
         const max = previousMax || tensor.max();
-        console.log("min: ", min.print(), ", max: ", max.print());
         const normalizedTensor = tensor.sub(min).div(max.sub(min));
         return {
             tensor: normalizedTensor,
@@ -280,7 +286,7 @@ function normalize(tensor, previousMin = null, previousMax = null) {
 }
 
 function denormalize(tensor, min, max) {
-     const featureDimensions = tensor.shape.length > 1 && tensor.shape[1];
+    const featureDimensions = tensor.shape.length > 1 && tensor.shape[1];
 
     if (featureDimensions && featureDimensions > 1) {
         const features = tf.split(tensor, featureDimensions, 1);
@@ -289,7 +295,7 @@ function denormalize(tensor, min, max) {
             denormalize(featureTensor, min[i], max[i])            
         );
 
-        const returnTensor = tf.concat(denormalizedFeatures.map(f => f.tensor), 1);        
+        const returnTensor = tf.concat(denormalizedFeatures.map(f => f), 1);        
         return returnTensor;
     } else {
         const denormalizedTensor = tensor.mul(max.sub(min)).add(min);
@@ -307,9 +313,9 @@ function createModel() {
         inputDim: 2
     }));   
     model.add(tf.layers.dense({
-        units: 1,
+        units: 3,
         useBias: true,
-        activation: 'sigmoid', // 'linear', //         
+        activation: 'softmax' // 'sigmoid', // 'linear', //         
     }));   
     compileModel(model);
 
@@ -319,7 +325,7 @@ function createModel() {
 function compileModel(model) {
     const optimizer = tf.train.adam(); // tf.train.sgd(0.1); // .1
     model.compile({
-        loss: 'binaryCrossentropy', // 'meanSquaredError',
+        loss: 'categoricalCrossentropy', //'binaryCrossentropy', // 'meanSquaredError',
         optimizer
     });
 }
@@ -347,6 +353,24 @@ async function trainModel(model, trainingFeatureTensor, trainingLabelTensor) {
     });
 }
 
+function getClassIndex(className) {
+    if (className === 1 || className === "1") {
+        return 0;
+    } else if (className === 2 || className === "2") {
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
+function getClassName(classIndex) {
+    if (classIndex === 2) {
+        return "3+";
+    } else {
+        return classIndex + 1;
+    }
+}
+
 let points;
 let normalizedFeature, normalizedLabel;
 let trainingFeatureTensor, testingFeatureTensor, trainingLabelTensor, testingLabelTensor;
@@ -356,13 +380,13 @@ async function run() {
     // Import from csv
     const houseSalesDataset = tf.data.csv("https://ijianhuang.github.io/HouseSales/kc_house_data.csv")
 
-    const className = "waterfront"; // "bedrooms"; // 
+    const className = "bedrooms"; // "waterfront"; // 
     // Extract x and y from data set to plot
     const pointsDataset = houseSalesDataset.map(record => ({
         x: record.sqft_living,
         y: record.price,
-        class: record.waterfront // record[className] > 2? "3+" : record[className] // 
-    }));
+        class: record[className] > 2? "3+" : record[className] // record[className] // 
+    })).filter(r => r.class !== 0);
     points = await pointsDataset.toArray();
     if (points.length % 2 !== 0) {
         points.pop();
@@ -376,14 +400,14 @@ async function run() {
     const featureTensor = tf.tensor2d(featureValues);
 
     // labels (outputs)
-    const labelValues = await points.map(p => p.class);
-    const labelTensor = tf.tensor2d(labelValues, [labelValues.length, 1]);
+    const labelValues = await points.map(p => getClassIndex(p.class));
+    const labelTensor = tf.tidy(() => tf.oneHot(tf.tensor1d(labelValues, 'int32'), 3));
+    labelTensor.print();
 
     // normalize features and labels
     normalizedFeature = normalize(featureTensor);
     normalizedLabel = normalize(labelTensor);
-
-    console.log(normalizedFeature);
+    
     featureTensor.dispose();
     labelTensor.dispose();
 
