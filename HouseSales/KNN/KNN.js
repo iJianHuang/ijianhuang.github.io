@@ -1,9 +1,20 @@
 class KNN 
 {
-    constructor(features, label) 
+    constructor() 
+    {    
+        this.topKMseValues1dHistory = tf.tensor1d([]);
+        ///this.topKLabels2dHistory = tf.tensor2d([-1,-1], [-1,-1]);          
+    }
+
+    reset() {
+        this.topKMseValues1dHistory = tf.tensor1d([]);
+        this.topKLabels2dHistory = null;
+    }
+
+    addFeaturesAndLabels(features, labels) 
     {
         this.features = features;
-        this.label = label;
+        this.labels = labels;
         this.#buildFeaturesAndLabel();
     }
 
@@ -18,7 +29,18 @@ class KNN
     }
 
     predict(sampleValues, topK) {
-        //const predictionPoint = [47.38, -122.44, 1970]; //, 705000];
+        this.#train(sampleValues, topK);
+
+        const {values, indices} = tf.topk(this.topKMseValues1dHistory, topK);    
+        this.topKMseValues1d = values;
+        this.topKMseIndices1d = indices;  
+
+        this.topKLabels2d = this.topKLabels2dHistory.gather(indices);
+        // reshape(-1) or flatten
+        return  this.topKLabels2d.sum().dataSync()[0] / topK;
+    }
+
+    #train(sampleValues, topK) {
         const predictionPointFeature1d = tf.tensor1d(sampleValues);
         const standardizedPredictionPointFeature1d = predictionPointFeature1d
             .sub(this.mean)
@@ -32,61 +54,83 @@ class KNN
             //.expandDims(1);
 
         const {values, indices} = tf.topk(mse1d.mul(-1), topK);    
-        this.topKValues1d = values;
-        this.topKIndices1d = indices;        
+        this.topKMseValues1dThisTime = values;
+        this.topKMseIndices1dThisTime = indices;   
+        this.topKLabels2dThisTime = this.labels.gather(indices);
 
-        const topKIndicesArray = this.topKIndices1d.arraySync();
-        const topKIndexes1d = tf.tensor1d(topKIndicesArray, 'int32');
-        const topKValues2d = this.label.gather(topKIndexes1d);
+        this.topKMseValues1dHistory = this.topKMseValues1dHistory.concat(values);
+        if (this.topKLabels2dHistory === undefined || this.topKLabels2dHistory === null) {
+            this.topKLabels2dHistory = this.topKLabels2dThisTime;
+        } else {
+            this.topKLabels2dHistory = this.topKLabels2dHistory.concat(this.topKLabels2dThisTime, 0);
+        }
 
-        return  topKValues2d.sum().dataSync()[0] / topK;
     }
 }
 
-
-async function buildFeaturesAndLabel() {
-    const datasetCSV = tf.data.csv("https://ijianhuang.github.io/HouseSales/kc_house_data.csv");
-    const featureFields = ["lat", "long"];
-    const labelField = "price";
-    const mapppedDataset = datasetCSV.map(record => { 
-        const row = [];
-        featureFields.forEach(p => row.push(record[p]));
-        row.push(record[labelField]);
-        return row;
-    });
-    const mapppedDatasetArray = await mapppedDataset.toArray();    
-    tf.util.shuffle(mapppedDatasetArray); // attn: in-place shuffle
-    const selectedDatasetArray = mapppedDatasetArray.slice(0, 5000);
-
-    const featuresAndLabel = tf.tensor2d(selectedDatasetArray);
-    const [features, label] = tf.split(featuresAndLabel, [featureFields.length, 1], 1);
-   
-    return [features, label];    
-}
 
 class FeaturesAndLabelsBuilder {
-    constructor(datasetUrl) 
+    #unprocessedRecordsSize = 0;
+
+    constructor(datasetUrl, options = {}) 
     {
-        this.datasetUrl = datasetUrl;
-        this.datasetCSV = tf.data.csv(this.datasetUrl);
-
+        this.DatasetUrl = datasetUrl;
+        this.DatasetSize = 0;
+        this.slicePositionStart = 0;  
+        this.slicePositionEnd = 0;  
+        this.#unprocessedRecordsSize = 0  
+        this.options = Object.assign({
+            shuffle: true
+        }, options);
     }
-
-    async buildFeaturesAndLabels(featureFields, labelFields) {
-        this.mapppedDataset = this.datasetCSV.map(record => { 
+    
+    async loadSelectedFields(featureFields, labelFields) {
+        this.DatasetCSV = tf.data.csv(this.DatasetUrl);          
+        this.MapppedDataset = this.DatasetCSV.map(record => { 
             const row = [];
             featureFields.forEach(p => row.push(record[p]));
             labelFields.forEach(p => row.push(record[p]));            
             return row;
         });
-        this.mapppedDatasetArray = await this.mapppedDataset.toArray();    
-        tf.util.shuffle(this.mapppedDatasetArray); // attn: in-place shuffle
-        this.selectedDatasetArray = this.mapppedDatasetArray.slice(0, 5000);
+        this.MapppedDatasetArray = await this.MapppedDataset.toArray();  
+        if (this.options.shuffle === true) {
+            tf.util.shuffle(this.MapppedDatasetArray); // attn: in-place shuffle
+        }         
+        this.DatasetSize = this.MapppedDatasetArray.length;
+        return this;
+    }
+
+    getDatasetSize() {
+        return this.DatasetSize;
+    }
+
+    getUnprocessedRecordsSize() {
+        this.#unprocessedRecordsSize = this.DatasetSize - this.slicePositionStart;
+        return this.#unprocessedRecordsSize;
+    }
+
+    getNextBatch(batchSize) {
+        let actualBatchSize = 0;
+        this.#unprocessedRecordsSize = this.DatasetSize - this.slicePositionStart;
+        if (this.#unprocessedRecordsSize === 0) {
+            return [tf.tensor2d([[]]), tf.tensor2d([[]])];
+        }
+
+        if (batchSize <= this.#unprocessedRecordsSize) {
+            actualBatchSize = batchSize;
+        } else {
+            actualBatchSize = this.#unprocessedRecordsSize;
+        }
+        this.slicePositionEnd = this.slicePositionStart + actualBatchSize;
+        this.SelectedDatasetArray = this.MapppedDatasetArray.slice(this.slicePositionStart, this.slicePositionEnd);
+        this.slicePositionStart += actualBatchSize;
+        this.#unprocessedRecordsSize = this.DatasetSize - this.slicePositionStart;
     
-        this.featuresAndLabel = tf.tensor2d(this.selectedDatasetArray);
-        [this.features, this.labels] = tf.split(this.featuresAndLabel, [featureFields.length, labelFields.length], 1);
+        this.FeaturesAndLabels = tf.tensor2d(this.SelectedDatasetArray);
+        [this.Features, this.Labels] = 
+            tf.split(this.FeaturesAndLabels, [featureFields.length, labelFields.length], 1);
         
-        return [this.features, this.labels];
+        return [this.Features, this.Labels];
     }
 
 }
@@ -94,9 +138,23 @@ class FeaturesAndLabelsBuilder {
 const featureFields = ["lat", "long"];
 const labelFields = ["price"];
 const builder = new FeaturesAndLabelsBuilder("https://ijianhuang.github.io/HouseSales/kc_house_data.csv");
+await builder.loadSelectedFields(featureFields, labelFields);
 
-const [features, labels] = await builder.buildFeaturesAndLabels(featureFields, labelFields);
+const [features, labels] = builder.getNextBatch(5000);
 
-const knn = new KNN(features, labels);
+const knn = new KNN();
+knn.addFeaturesAndLabels(features, labels);
 const price = knn.predict([47.38, -122.44], 3);
 
+const [features2, labels2] = builder.getNextBatch(5000);
+knn.addFeaturesAndLabels(features2, labels2);
+const price2 = knn.predict([47.38, -122.44], 3);
+
+const [features3, labels3] = builder.getNextBatch(5000);
+knn.addFeaturesAndLabels(features3, labels3);
+const price3 = knn.predict([47.38, -122.44], 3);
+
+const [features4, labels4] = builder.getNextBatch(5000);
+knn.addFeaturesAndLabels(features4, labels4);
+const price4 = knn.predict([47.38, -122.44], 3);
+// knn.topKLabels2dHistory.concat(knn.topKMseValues1dHistory.expandDims(1), 1).print();
