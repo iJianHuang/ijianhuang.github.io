@@ -2,101 +2,116 @@
 <html lang="en">
 
 <head>
-    <title>Jian's ML Code Camp </title>
+    <title>Jian's ML Code Camp</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Jian's Machine Learning Code Camp">
-    <meta name="keywords" content="Machine Learning TensorFlow WebCam Self Driving car">
+    <meta name="keywords" content="Machine Learning, TensorFlow.js, WebCam, Self Driving Car, JavaScript, AI demos">
     <meta name="author" content="Jian Huang">
-    <!-- Import the webpage's stylesheet -->
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="Content/Site.css">
 </head>
 
 <body>
-    <h1 class="PageTitle">Jian's ML Code Camp</h1>
-    <h4 class="PageHeader"> </h4>
+    <header class="PageTitle">
+        <div class="hero">
+            <p class="eyebrow">Explore machine learning in the browser</p>
+            <h1>Jian's ML Code Camp</h1>
+            <p class="hero-copy">
+                A hands-on collection of interactive AI and ML experiments built to help you learn by doing.
+                Explore models, simulations, and visual training demos that make machine learning feel tangible.
+            </p>
+            <div class="hero-actions">
+                <a class="primary-action" href="#projects">Explore the demos</a>
+                <a class="secondary-action" href="#references">Learn more</a>
+            </div>
+            <ul class="feature-list">
+                <li>TensorFlow.js models</li>
+                <li>Self-driving car simulation</li>
+                <li>Regression and classification examples</li>
+            </ul>
+        </div>
+    </header>
 
+    <main class="PageContent" id="projects">
+        <section class="intro-block">
+            <p class="section-tag">Start here</p>
+            <h2>Pick a project and begin exploring</h2>
+            <p>
+                This repository brings together browser-based demos that show how machine learning ideas come to life
+                in real code. From image recognition to prediction models and autonomous driving experiments,
+                each project is designed to make the learning journey engaging and interactive.
+            </p>
+        </section>
 
-    <div class="PageContent">
-        <article class="example-card">
-            <h3>Multiple Object Detection <br>using Pre Trained Model in TensorFlow.js</h3>
-            <h2><a href="./WebCam/index.html" target="_blank"><strong>DEMO</strong></a> </h2>
-            <p>
-                <small>Follow the YouTube Google Developer's
-                    Machine Learning for Web Developer playlist [1]</a>
-                    <br><br>
-                </small>
-            </p>
-        </article>
-    
-        <article class="example-card">
-            <h3>Self Driving Car <br>&nbsp;<br></h3>
-            <h2><a href="./SelfDrivingCar/index.html" target="_blank"><strong>DEMO</strong></a> </h2>
-            <p>
-                <small>
-                    The blue car learns and drives past the five cars in the front.
-                    DIY exercise of Self Driving Car. 
-                    The reference is Dr. Radu Mariescu-Istodor's
-                    YouTube videos [2].
-                </small>
-            </p>
-    
-        </article>
-    
-        <article class="example-card">
-            <h3>House Sale Prediction <br>
-                Linear Regression TensorFlowJS (one neuron)    
-            </h3>
-            <h2><a href="./HouseSales/LinearRegression/index.html" target="_blank"><strong>DEMO</strong></a> </h2>
-            <p>
-                <small>
-                    Click the 'TRAIN NEW MODEL'
-                    , you start to see the model learning through visual display ...  
-                    DIY exercise of Training a model to predict house price from living space [3]. 
-     
-                </small>
-            </p>
-        </article>
+        <div class="project-grid">
+            <article class="example-card">
+                <div class="card-badge">Computer Vision</div>
+                <h3>Multiple Object Detection</h3>
+                <p class="project-type">TensorFlow.js + webcam input</p>
+                <p>
+                    See a pre-trained model detect objects in real time and explore how browser-based computer vision can
+                    run directly in the browser.
+                </p>
+                <a class="demo-link" href="./WebCam/index.html" target="_blank" rel="noopener">Open demo</a>
+            </article>
 
-        <article class="example-card">
-            <h3>Number of Bedrooms Prediction <br>
-                Multi-classification TensorFlowJS <br>
-                (Two layers with 10 and 3 neurons respectively)    
-            </h3>
-            <h2><a href="./HouseSales/MultiClasses/index.html" target="_blank"><strong>DEMO</strong></a> </h2>
-            <p>
-                <small>
-                    Click the 'TRAIN NEW MODEL'
-                    , you start to see the model learning through visual display ...                      
-                    DIY exercise of Training a model to predict number of bedrooms from living space and house price [3]. 
-                       
-                </small>
-            </p>
-        </article>
-    </div>
-    
-    <div class="PageFooter">
+            <article class="example-card">
+                <div class="card-badge">Neural Networks</div>
+                <h3>Self Driving Car</h3>
+                <p class="project-type">Simulation + learning agent</p>
+                <p>
+                    Watch a car learn to navigate a road, avoid traffic, and improve its decisions over time through a
+                    simple AI training loop.
+                </p>
+                <a class="demo-link" href="./SelfDrivingCar/index.html" target="_blank" rel="noopener">Open demo</a>
+            </article>
+
+            <article class="example-card">
+                <div class="card-badge">Regression</div>
+                <h3>House Sale Prediction</h3>
+                <p class="project-type">Linear regression</p>
+                <p>
+                    Train a model to predict house prices from living space and observe how a simple regression model learns
+                    from sample data.
+                </p>
+                <a class="demo-link" href="./HouseSales/LinearRegression/index.html" target="_blank" rel="noopener">Open demo</a>
+            </article>
+
+            <article class="example-card">
+                <div class="card-badge">Classification</div>
+                <h3>Bedroom Count Prediction</h3>
+                <p class="project-type">Multi-class classification</p>
+                <p>
+                    Explore how a model can classify more than two outcomes and learn to predict bedroom counts from housing
+                    features and price signals.
+                </p>
+                <a class="demo-link" href="./HouseSales/MultiClasses/index.html" target="_blank" rel="noopener">Open demo</a>
+            </article>
+        </div>
+    </main>
+
+    <footer class="PageFooter" id="references">
         <h3>References</h3>
         <p>
-            1. YouTube Google Developer's
-            <a href="https://www.youtube.com/watch?v=TuYbgZ59Kpg&list=PLOU2XLYxmsILr3HQpqjLAUkIPa5EaZiui"
-                target="_blank">Machine Learning for Web Developer playlist</a>
-    
+            1. <a href="https://www.youtube.com/watch?v=TuYbgZ59Kpg&list=PLOU2XLYxmsILr3HQpqjLAUkIPa5EaZiui" target="_blank" rel="noopener">
+                Google Developer Machine Learning for Web Developers playlist
+            </a>
         </p>
         <p>
-            2. Dr. Radu Mariescu-Istodor's
-            <a href="https://www.youtube.com/playlist?list=PLB0Tybl0UNfYoJE7ZwsBQoDIG4YN9ptyY" target="_blank">YouTube
-                videos</a>
+            2. <a href="https://www.youtube.com/playlist?list=PLB0Tybl0UNfYoJE7ZwsBQoDIG4YN9ptyY" target="_blank" rel="noopener">
+                Dr. Radu Mariescu-Istodor's YouTube videos
+            </a>
         </p>
         <p>
-            3. Udemy course, Master machine learning with JavaScript and TensorFlowJS
+            3. Udemy course: Master machine learning with JavaScript and TensorFlowJS
         </p>
-        <br><br>
-        <h3>To Do</h3>
-        <p>1. Refactor to use material design </p>
-    </div>
 
+        <div class="todo-box">
+            <h3>To Do</h3>
+            <p>Refactor to use a more polished material-style design and expand the project collection.</p>
+        </div>
+    </footer>
 </body>
 
 </html>
