@@ -1,24 +1,33 @@
-class KNN 
-{
-    constructor() 
-    {    
+class KNN {
+    constructor(featuresAndLabelsBuilder, datasetDescription, options = {}) {    
+        this.debugInfo = "";
         this.topKMseValues1dHistory = tf.tensor1d([]);
-        ///this.topKLabels2dHistory = tf.tensor2d([-1,-1], [-1,-1]);          
+        this.featuresHistory = [];
+        this.labelsHistory = [];
+        ///this.topKLabels2dHistory = tf.tensor2d([-1,-1], [-1,-1]);  
+        this.featuresAndLabelsBuilder = featuresAndLabelsBuilder;
+        this.datasetDescription = datasetDescription;
+        this.options = Object.assign({
+            shuffle: true,
+            batchSize: 100
+        }, options);        
     }
+    
 
-    reset() {
-        this.topKMseValues1dHistory = tf.tensor1d([]);
-        this.topKLabels2dHistory = null;
-    }
-
-    addFeaturesAndLabels(features, labels) 
+    #addFeaturesAndLabels(features, labels) 
     {
         this.features = features;
         this.labels = labels;
-        this.#buildFeaturesAndLabel();
+        if (this.features === null || this.labels === null) {
+            return;
+        } 
+        
+        this.featuresHistory.push(this.features);
+        this.labelsHistory.push(this.labels);
+        this.#standardize();
     }
 
-    #buildFeaturesAndLabel() {
+    #standardize() {
        
         const {mean, variance} = tf.moments(this.features, 0); //  The dimension(s) along with to compute
         this.mean = mean;
@@ -28,8 +37,26 @@ class KNN
             .div(this.variance.pow(.5));
     }
 
-    predict(sampleValues, topK) {
-        this.#train(sampleValues, topK);
+    async predict(sampleValues, topK) {
+       
+
+        this.featuresAndLabelsBuilder.config(this.datasetDescription, this.options);
+        await this.featuresAndLabelsBuilder.loadSelectedFields();
+
+        let price = 0;
+        for (let i = 1; i <= this.featuresAndLabelsBuilder.numberOfBatches; i++) {
+            let [features, labels] = this.featuresAndLabelsBuilder.getBatch(i);
+            this.#addFeaturesAndLabels(features, labels);
+            price = this.#learn(sampleValues, topK);
+            this.debugInfo += `Price ${i}:  ${price} ` + '\r\n';
+        }          
+        return  price;
+    }
+
+    #learn(sampleValues, topK) {
+        if (this.features !== null && this.labels !== null) {
+            this.#learnThisBatch(sampleValues, topK);
+        }         
 
         const {values, indices} = tf.topk(this.topKMseValues1dHistory, topK);    
         this.topKMseValues1d = values;
@@ -40,7 +67,7 @@ class KNN
         return  this.topKLabels2d.sum().dataSync()[0] / topK;
     }
 
-    #train(sampleValues, topK) {
+    #learnThisBatch(sampleValues, topK) {
         const predictionPointFeature1d = tf.tensor1d(sampleValues);
         const standardizedPredictionPointFeature1d = predictionPointFeature1d
             .sub(this.mean)
